@@ -26,8 +26,8 @@ var reKeyValue = regexp.MustCompile(`([a-zA-Z0-9_-]+)=("[^"]+"|[^",]+)`)
 
 // TimeParse allows globally apply and/or override Time Parser function.
 // Available variants:
-//		* FullTimeParse - implements full featured ISO/IEC 8601:2004
-//		* StrictTimeParse - implements only RFC3339 Nanoseconds format
+//   - FullTimeParse - implements full featured ISO/IEC 8601:2004
+//   - StrictTimeParse - implements only RFC3339 Nanoseconds format
 var TimeParse func(value string) (time.Time, error) = FullTimeParse
 
 // Decode parses a master playlist passed from the buffer. If `strict`
@@ -472,16 +472,18 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 	}
 
 	switch {
-	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"):
+	case !state.tagInf && strings.HasPrefix(line, "#EXTINF:"): //
 		state.tagInf = true
 		state.listType = MEDIA
 		sepIndex := strings.Index(line, ",")
 		if sepIndex == -1 {
-			if strict {
-				return fmt.Errorf("could not parse: %q", line)
-			}
+			// low latency #EXTINF:2.000, url at next line
+			//if strict {
+			//	return fmt.Errorf("could not parse: %q", line)
+			//}
 			sepIndex = len(line)
 		}
+
 		duration := line[8:sepIndex]
 		if len(duration) > 0 {
 			if state.duration, err = strconv.ParseFloat(duration, 64); strict && err != nil {
@@ -643,6 +645,7 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 		}
 	case strings.HasPrefix(line, "#EXT-X-MAP:"):
 		state.listType = MEDIA
+
 		state.xmap = new(Map)
 		for k, v := range decodeParamsLine(line[11:]) {
 			switch k {
@@ -655,6 +658,8 @@ func decodeLineOfMediaPlaylist(p *MediaPlaylist, wv *WV, state *decodingState, l
 			}
 		}
 		state.tagMap = true
+		var xmap Map = *state.xmap
+		p.Map = &xmap
 	case !state.tagProgramDateTime && strings.HasPrefix(line, "#EXT-X-PROGRAM-DATE-TIME:"):
 		state.tagProgramDateTime = true
 		state.listType = MEDIA
