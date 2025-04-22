@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/youwen21/m3u8"
+	"github.com/grafov/m3u8"
 )
 
 // #CUSTOM-PLAYLIST-TAG:<number>
